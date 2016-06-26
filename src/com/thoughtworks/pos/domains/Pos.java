@@ -15,6 +15,10 @@ public class Pos {
                 .append("***商店购物清单***\n");
 
         for (ItemGroup itemGroup : report.getItemGroupies()) {
+            boolean promtion = false;
+            if(itemGroup.groupPromotion()==true){
+                promtion = true;
+            }
             shoppingListBuilder.append(
                     new StringBuilder()
                             .append("名称：").append(itemGroup.groupName()).append("，")
@@ -22,7 +26,17 @@ public class Pos {
                             .append("单价：").append(String.format("%.2f", itemGroup.groupPrice())).append("(元)").append("，")
                             .append("小计：").append(String.format("%.2f", itemGroup.subTotal())).append("(元)").append("\n")
                             .toString());
+            if (promtion==true && itemGroup.groupSize()>2){
+                shoppingListBuilder.append(
+                        new StringBuilder()
+                                .append("----------------------\n")
+                                .append("挥泪赠送商品：\n")
+                                .append("名称：").append(itemGroup.groupName()).append("，")
+                                .append("数量：").append(itemGroup.groupPromotionSize()).append(itemGroup.groupUnit()).append("\n")
+                                .toString());
+            }
         }
+
         StringBuilder subStringBuilder = shoppingListBuilder
                 .append("----------------------\n")
                 .append("总计：").append(String.format("%.2f", report.getTotal())).append("(元)").append("\n");

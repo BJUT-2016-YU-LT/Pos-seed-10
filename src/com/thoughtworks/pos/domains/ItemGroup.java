@@ -28,17 +28,32 @@ public class ItemGroup {
         return items.get(0).getPrice();
     }
 
+    public boolean groupPromotion(){ return items.get(0).getPromotion();}
+
+    public int groupPromotionSize(){ return items.size() / 3;}
+
     public double subTotal() {
         double result = 0.00;
-        for (Item item : items)
-            result += item.getPrice() * item.getDiscount();
+        for (Item item : items) {
+            if (item.getPromotion() == true) {
+                result = item.getPrice() * ((items.size() / 3)*2+items.size()%3);
+            } else {
+                result += item.getPrice() * item.getDiscount();
+            }
+        }
         return result;
     }
 
     public double saving() {
         double result = 0.00;
-        for (Item item : items)
-            result += item.getPrice() * (1 - item.getDiscount());
+        for (Item item : items){
+           if (item.getPromotion()==true){
+               result =item.getPrice()*(items.size()/3);
+           }
+            else{
+               result += item.getPrice() * (1 - item.getDiscount());
+           }
+        }
         return result;
     }
 }
