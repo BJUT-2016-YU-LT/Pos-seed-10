@@ -15,17 +15,22 @@ public class Pos {
                 .append("***商店购物清单***\n");
 
         for (ItemGroup itemGroup : report.getItemGroupies()) {
-            boolean promtion = false;
-            if(itemGroup.groupPromotion()==true){
-                promtion = true;
-            }
             shoppingListBuilder.append(
                     new StringBuilder()
-                            .append("名称：").append(itemGroup.groupName()).append("，")
+                            .append("名称：").append(itemGroup.groupName()).append('，')
                             .append("数量：").append(itemGroup.groupSize()).append(itemGroup.groupUnit()).append("，")
                             .append("单价：").append(String.format("%.2f", itemGroup.groupPrice())).append("(元)").append("，")
                             .append("小计：").append(String.format("%.2f", itemGroup.subTotal())).append("(元)").append("\n")
                             .toString());
+        }
+
+        for (ItemGroup itemGroup : report.getItemGroupies()) {
+            boolean promtion = false;
+            if(itemGroup.groupPromotion()==true){
+                promtion = true;
+            }else{
+                promtion=false;
+            }
             if (promtion==true && itemGroup.groupSize()>2){
                 shoppingListBuilder.append(
                         new StringBuilder()
