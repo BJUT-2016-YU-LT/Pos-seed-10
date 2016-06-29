@@ -36,12 +36,7 @@ public class InputParser {
         for (String barcode : barCodes) {
             Item mappedItem = itemIndexes.get(barcode);
             Item item = new Item(barcode, mappedItem.getName(), mappedItem.getUnit(), mappedItem.getPrice(), mappedItem.getDiscount(),mappedItem.getPromotion());
-            if (item.getDiscount()<1&&item.getPromotion()==true){
-                System.out.println(item.getName()+" 商品不能同时拥有打折和促销信息！请重新输入商品信息！");
-            }else{
-                shoppingChart.add(item);
-            }
-
+            shoppingChart.add(item);
         }
         return shoppingChart;
     }
