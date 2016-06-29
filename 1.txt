@@ -1,8 +1,0 @@
-{
-"ITEM000000": {
- "name": '옵왯옵있',
- "unit": '틸',
- "price": 3.00,
- "promotion": 'true'
- }
- }
