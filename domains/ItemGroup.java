@@ -6,53 +6,77 @@ import java.util.List;
  * Created by Administrator on 2014/12/31.
  */
 public class ItemGroup {
-    private List<Item> items;
+    private Item item;
+    private int quanitty;
+    private int gift;
+    private User user = new User();
 
-    public ItemGroup(List<Item> items) {
-        this.items = items;
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public ItemGroup(Item item) {
+        this.item = item;
+        this.quanitty = 0;
+        this.gift = 0;
     }
 
     public String groupName() {
-        return items.get(0).getName();
+        return item.getName();
     }
 
     public int groupSize() {
-        return items.size();
+        return quanitty;
     }
 
     public String groupUnit() {
-        return items.get(0).getUnit();
+        return item.getUnit();
     }
 
     public double groupPrice() {
-        return items.get(0).getPrice();
+        return item.getPrice();
     }
 
-    public boolean groupPromotion(){ return items.get(0).getPromotion();}
+    public boolean groupPromotion() {
+        return item.getPromotion();
+    }
 
-    public int groupPromotionSize(){ return items.size() / 3;}
+    public int groupGift() {
+        return gift;
+    }
+
+    public void addOne() {
+        quanitty++;
+        if (item.getPromotion() && quanitty > 1) {
+            gift = 1;
+        }
+    }
 
     public double subTotal() {
-        double result = 0.00;
-        for (Item item : items) {
-            if (item.getPromotion() == true) {
-                result = item.getPrice() * ((items.size() / 3)*2+items.size()%3);
-            } else {
-                result += item.getPrice() * item.getDiscount();
-            }
+        if (item.getPromotion() && quanitty > 1) {
+            return item.getPrice() * quanitty;
+        }
+        double result;
+        result = item.getPrice() * quanitty * item.getDiscount();
+        if (user.getIsVip()) {
+            result *= item.getVipDiscount();
         }
         return result;
     }
 
     public double saving() {
-        double result = 0.00;
-        for (Item item : items){
-           if (item.getPromotion()==true){
-               result =item.getPrice()*(items.size()/3);
-           }
-            else{
-               result += item.getPrice() * (1 - item.getDiscount());
-           }
+        if (item.getPromotion() && quanitty > 1) {
+            return item.getPrice();
+        }
+        double result;
+        result = item.getPrice() * quanitty * (1 - item.getDiscount());
+        if (user.getIsVip()) {
+            result += item.getPrice() * quanitty * item.getDiscount() * (1 - item.getVipDiscount());
         }
         return result;
     }
