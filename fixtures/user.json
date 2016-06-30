@@ -1,0 +1,18 @@
+{
+  "USER0001": {
+    "number":"USER0001",
+    "name": "user0001",
+    "isVip": true,
+    "score":550
+  },
+  "USER0002": {
+    "number":"USER0002",
+    "name": "user0002",
+    "isVip": false
+  },
+  "USER0003": {
+    "number":"USER0003",
+    "name": "user0003",
+    "isVip": true
+  }
+}
