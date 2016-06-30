@@ -20,6 +20,7 @@ public class InputParserTest {
 
     private File indexFile;
     private File itemsFile;
+    private File userFile;
 
     @Before
     public void setUp() throws Exception {
@@ -58,7 +59,7 @@ public class InputParserTest {
                 .toString();
         WriteToFile(itemsFile, sampleItems);
 
-        InputParser inputParser = new InputParser(indexFile, itemsFile);
+        InputParser inputParser = new InputParser(indexFile, itemsFile, userFile);
         ArrayList<Item> items = inputParser.parser().getItems();
 
         assertThat(items.size(), is(1));
@@ -96,7 +97,7 @@ public class InputParserTest {
                 .toString();
         WriteToFile(itemsFile, sampleItems);
 
-        InputParser inputParser = new InputParser(indexFile, itemsFile);
+        InputParser inputParser = new InputParser(indexFile, itemsFile,userFile);
         ArrayList<Item> items = inputParser.parser().getItems();
         Item item = items.get(0);
         assertThat(item.getDiscount(), is(1.00));

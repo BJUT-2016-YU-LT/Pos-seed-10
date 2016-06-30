@@ -1,7 +1,9 @@
 import com.thoughtworks.pos.domains.Item;
 import com.thoughtworks.pos.domains.Pos;
 import com.thoughtworks.pos.domains.ShoppingChart;
+import com.thoughtworks.pos.domains.User;
 import com.thoughtworks.pos.services.services.InputParser;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,334 +20,166 @@ import static org.junit.Assert.assertThat;
  * Created by Administrator on 2016/6/29.
  */
 public class VIPtest {
-    private File indexFile;
-    private File itemsFile;
-    private File usersFile;
-
-    @Before
-    public void setUp() throws Exception {
-        indexFile = new File("./indexFile.json");
-        itemsFile = new File("./itemsFile.json");
-        usersFile = new File("./usersFile.json");
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (indexFile.exists()) {
-            indexFile.delete();
-        }
-        if (itemsFile.exists()) {
-            itemsFile.delete();
-        }
-        if (usersFile.exists()) {
-            usersFile.delete();
-        }
-    }
-    private void WriteToFile(File file, String content) throws FileNotFoundException {
-        PrintWriter printWriter = new PrintWriter(file);
-        printWriter.write(content);
-        printWriter.close();
-    }
-    @Test
-    public void testVipImformationForSimpleItem() throws Exception {//测试VIP信息，对于普通（无打折，无促销）商品
-        String sampleIndex = new StringBuilder()  //标准输入 输入到index.json文件
-                .append("{\n")
-                .append("'ITEM000003':{\n")
-                .append("\"name\": '电池',\n")
-                .append("\"unit\": '个',\n")
-                .append("\"price\": 5.00\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(indexFile, sampleIndex);
-
-        String sampleItems = new StringBuilder() //标准输入，输入到item.json文件
-                .append("{\n")
-                .append("\"user\": 'USER001',\n")
-                .append("\"items\":[\n")
-                .append("\"ITEM000003\",\n")
-                .append("\"ITEM000003\",\n")
-                .append("\"ITEM000003\"")
-                .append("]")
-                .append("}\n")
-                .toString();
-        WriteToFile(itemsFile, sampleItems);
-
-        String sampleUsers = new StringBuilder() //标准输入，输入到user.json文件
-                .append("{\n")
-                .append("\"USER001\": {\n")
-                .append("\"name\": 'USER 001',\n")
-                .append("\"isVip\",true\n")
-                .append("},\n")
-                .append("\"USER002\": {\n")
-                .append("\"name\": 'USER 002',\n")
-                .append("\"isVip\",false\n")
-                .append("},\n")
-                .append("\"USER003\": {\n")
-                .append("\"name\": 'USER 0031',\n")
-                .append("\"isVip\",true\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(usersFile, sampleUsers);
-
-        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);   //文件读入 InputParser类
-        ArrayList<Item> items = inputParser.parser().getItems();
-
+    public void testExistVipUserBuyItemsHaveDifferentDiscountType() throws  Exception{
+        // given
         ShoppingChart shoppingChart = new ShoppingChart();
-        for (Item i : items) {  //为购物单循环输入商品信息
-            shoppingChart.add(i);
-        }
+        shoppingChart.add(new Item(0.6, "ITEM000000", "雪碧", "瓶", 4.00));
+        shoppingChart.add(new Item("ITEM000001", "可乐", "罐", 2.00, 0.8));
+        shoppingChart.add(new Item(0.8, "ITEM000002", "雪碧", "听", 3.00, 0.9));
 
+        shoppingChart.setUser(new User("USER0001","user0001", true, 0));
+
+        // when
         Pos pos = new Pos();
-
         String actualShoppingList = pos.getShoppingList(shoppingChart);
-        String expectedShoppingList =    //标准输出打印 POS类
+
+        // then
+        String expectedShoppingList =
                 "***商店购物清单***\n"
-                        + "打印时间：!!!\n"
+                        + "会员编号：USER0001\t会员积分：1分\n"
                         + "----------------------\n"
-                        + "名称：电池，数量：3个，单价：5.00(元)，小计：15.00(元)\n"
+                        + "名称：雪碧，数量：1瓶，单价：4.00(元)，小计：2.40(元)\n"
+                        + "名称：可乐，数量：1罐，单价：2.00(元)，小计：1.60(元)\n"
+                        + "名称：雪碧，数量：1听，单价：3.00(元)，小计：2.16(元)\n"
                         + "----------------------\n"
-                        + "总计：15.00(元)\n"
+                        + "总计：6.16(元)\n"
+                        + "节省：2.84(元)\n"
                         + "**********************\n";
         assertThat(actualShoppingList, is(expectedShoppingList));
     }
 
     @Test
-    public void testVipImformationForVipDiscount() throws Exception {
-        String sampleIndex = new StringBuilder()  //标准输入 输入到index.json文件
-                .append("{\n")
-                .append("'ITEM000000':{\n")
-                .append("\"name\": '可口可乐',\n")
-                .append("\"unit\": '瓶',\n")
-                .append("\"price\": 3.00,\n")
-                .append("\"vipDiscount\": 0.90\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(indexFile, sampleIndex);
-
-        String sampleItems = new StringBuilder() //标准输入，输入到item.json文件
-                .append("{\n")
-                .append("\"user\": 'USER001',\n")
-                .append("\"items\":[\n")
-                .append("\"ITEM000000\",\n")
-                .append("\"ITEM000000\",\n")
-                .append("\"ITEM000000\"")
-                .append("]")
-                .append("}\n")
-                .toString();
-        WriteToFile(itemsFile, sampleItems);
-
-        String sampleUsers = new StringBuilder() //标准输入，输入到user.json文件
-                .append("{\n")
-                .append("\"USER001\": {\n")
-                .append("\"name\": 'USER 001',\n")
-                .append("\"isVip\",true\n")
-                .append("},\n")
-                .append("\"USER002\": {\n")
-                .append("\"name\": 'USER 002',\n")
-                .append("\"isVip\",false\n")
-                .append("},\n")
-                .append("\"USER003\": {\n")
-                .append("\"name\": 'USER 0031',\n")
-                .append("\"isVip\",true\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(usersFile, sampleUsers);
-
-        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);
-        ArrayList<Item> items = inputParser.parser().getItems();
-
+    public void testExistVVipUserBuyItemsHaveDifferentPromotion() throws  Exception{
+        // given
         ShoppingChart shoppingChart = new ShoppingChart();
-        for (Item i : items) {
-            shoppingChart.add(i);
-        }
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000001", "可乐", "罐", 2.00, true));
+        shoppingChart.add(new Item("ITEM000002", "雪碧", "听", 3.00, false));
+        shoppingChart.add(new Item("ITEM000002", "雪碧", "听", 3.00, false));
 
+        shoppingChart.setUser(new User("USER0001","user0001", true, 201));
+
+        // when
         Pos pos = new Pos();
-
         String actualShoppingList = pos.getShoppingList(shoppingChart);
-        String expectedShoppingList =    //标准输出打印
+
+        // then
+        String expectedShoppingList =
                 "***商店购物清单***\n"
-                        + "打印时间：!!!\n"
+                        + "会员编号：USER0001\t会员积分：210分\n"
                         + "----------------------\n"
-                        + "名称：可口可乐，数量：3瓶，单价：3.00(元)，小计：8.10(元)\n"
+                        + "名称：雪碧，数量：3瓶，单价：4.00(元)，小计：8.00(元)\n"
+                        + "名称：可乐，数量：1罐，单价：2.00(元)，小计：2.00(元)\n"
+                        + "名称：雪碧，数量：2听，单价：3.00(元)，小计：6.00(元)\n"
                         + "----------------------\n"
-                        + "总计：8.10(元)\n"
-                        + "节省：0.90(元)\n"
+                        + "挥泪赠送商品：\n"
+                        + "名称：雪碧，数量：1瓶，单价：4.00(元)，小计：4.00(元)\n"
+                        + "----------------------\n"
+                        + "总计：16.00(元)\n"
+                        + "节省：4.00(元)\n"
                         + "**********************\n";
         assertThat(actualShoppingList, is(expectedShoppingList));
     }
 
     @Test
-    public void testNotVipForVipDiscount() throws Exception {
-        String sampleIndex = new StringBuilder()  //标准输入 输入到index.json文件
-                .append("{\n")
-                .append("'ITEM000000':{\n")
-                .append("\"name\": '可口可乐',\n")
-                .append("\"unit\": '瓶',\n")
-                .append("\"price\": 3.00,\n")
-                .append("\"vipDiscount\": 0.90\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(indexFile, sampleIndex);
-
-        String sampleItems = new StringBuilder() //标准输入，输入到item.json文件
-                .append("{\n")
-                .append("\"user\": 'USER002',\n")
-                .append("\"items\":[\n")
-                .append("\"ITEM000000\",\n")
-                .append("\"ITEM000000\",\n")
-                .append("\"ITEM000000\"")
-                .append("]")
-                .append("}\n")
-                .toString();
-        WriteToFile(itemsFile, sampleItems);
-
-        String sampleUsers = new StringBuilder() //标准输入，输入到user.json文件
-                .append("{\n")
-                .append("\"USER001\": {\n")
-                .append("\"name\": 'USER 001',\n")
-                .append("\"isVip\",true\n")
-                .append("},\n")
-                .append("\"USER002\": {\n")
-                .append("\"name\": 'USER 002',\n")
-                .append("\"isVip\",false\n")
-                .append("},\n")
-                .append("\"USER003\": {\n")
-                .append("\"name\": 'USER 0031',\n")
-                .append("\"isVip\",true\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(usersFile, sampleUsers);
-
-        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);
-        ArrayList<Item> items = inputParser.parser().getItems();
-
+    public void testExistVVVipUserBuyItemsHaveDifferentPromotion() throws  Exception{
+        // given
         ShoppingChart shoppingChart = new ShoppingChart();
-        for (Item i : items) {
-            shoppingChart.add(i);
-        }
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000001", "可乐", "罐", 2.00, true));
+        shoppingChart.add(new Item("ITEM000002", "雪碧", "听", 3.00, false));
+        shoppingChart.add(new Item("ITEM000002", "雪碧", "听", 3.00, false));
 
+        shoppingChart.setUser(new User("USER0001","user0001", true, 501));
+
+        // when
         Pos pos = new Pos();
-
         String actualShoppingList = pos.getShoppingList(shoppingChart);
-        String expectedShoppingList =    //标准输出打印
+
+        // then
+        String expectedShoppingList =
                 "***商店购物清单***\n"
-                        + "打印时间：!!!\n"
+                        + "会员编号：USER0001\t会员积分：516分\n"
                         + "----------------------\n"
-                        + "名称：可口可乐，数量：3瓶，单价：3.00(元)，小计：9.00(元)\n"
+                        + "名称：雪碧，数量：3瓶，单价：4.00(元)，小计：8.00(元)\n"
+                        + "名称：可乐，数量：1罐，单价：2.00(元)，小计：2.00(元)\n"
+                        + "名称：雪碧，数量：2听，单价：3.00(元)，小计：6.00(元)\n"
                         + "----------------------\n"
-                        + "总计：9.00(元)\n"
+                        + "挥泪赠送商品：\n"
+                        + "名称：雪碧，数量：1瓶，单价：4.00(元)，小计：4.00(元)\n"
+                        + "----------------------\n"
+                        + "总计：16.00(元)\n"
+                        + "节省：4.00(元)\n"
                         + "**********************\n";
         assertThat(actualShoppingList, is(expectedShoppingList));
     }
 
     @Test
-    public void testVipImformationForVipDiscountAndDiscount() throws Exception {
-        String sampleIndex = new StringBuilder()  //标准输入 输入到index.json文件
-                .append("{\n")
-                .append("'ITEM000001':{\n")
-                .append("\"name\": '雪碧',\n")
-                .append("\"unit\": '瓶',\n")
-                .append("\"price\": 3.00,\n")
-                .append("\"Discount\": 0.80,\n")
-                .append("\"vipDiscount\": 0.95\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(indexFile, sampleIndex);
-
-        String sampleItems = new StringBuilder() //标准输入，输入到item.json文件
-                .append("{\n")
-                .append("\"user\": 'USER001',\n")
-                .append("\"items\":[\n")
-                .append("\"ITEM000001\",\n")
-                .append("\"ITEM000001\",\n")
-                .append("\"ITEM000001\"")
-                .append("]")
-                .append("}\n")
-                .toString();
-        WriteToFile(itemsFile, sampleItems);
-
-        String sampleUsers = new StringBuilder() //标准输入，输入到user.json文件
-                .append("{\n")
-                .append("\"USER001\": {\n")
-                .append("\"name\": 'USER 001',\n")
-                .append("\"isVip\",true\n")
-                .append("},\n")
-                .append("\"USER002\": {\n")
-                .append("\"name\": 'USER 002',\n")
-                .append("\"isVip\",false\n")
-                .append("},\n")
-                .append("\"USER003\": {\n")
-                .append("\"name\": 'USER 0031',\n")
-                .append("\"isVip\",true\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(usersFile, sampleUsers);
-
-        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);
-        ArrayList<Item> items = inputParser.parser().getItems();
-
+    public void testExistNormalUserBuyMixedItems() throws  Exception{
+        // given
         ShoppingChart shoppingChart = new ShoppingChart();
-        for (Item i : items) {
-            shoppingChart.add(i);
-        }
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000001", "可乐", "罐", 2.00, 0.5));
+        shoppingChart.add(new Item(0.8, "ITEM000002", "雪碧", "听", 3.00, false));
+        shoppingChart.add(new Item(0.8, "ITEM000003", "牛奶", "盒", 3.00, 0.8));
 
+        shoppingChart.setUser(new User("USER0001","武文斌", false));
+
+        // when
         Pos pos = new Pos();
-
         String actualShoppingList = pos.getShoppingList(shoppingChart);
-        String expectedShoppingList =    //标准输出打印
+
+        // then
+        String expectedShoppingList =
                 "***商店购物清单***\n"
-                        + "打印时间：!!!\n"
+                        + "名称：雪碧，数量：3瓶，单价：4.00(元)，小计：8.00(元)\n"
+                        + "名称：可乐，数量：1罐，单价：2.00(元)，小计：1.00(元)\n"
+                        + "名称：雪碧，数量：1听，单价：3.00(元)，小计：3.00(元)\n"
+                        + "名称：牛奶，数量：1盒，单价：3.00(元)，小计：2.40(元)\n"
                         + "----------------------\n"
-                        + "名称：雪碧，数量：3瓶，单价：3.00(元)，小计：6.84(元)\n"
+                        + "挥泪赠送商品：\n"
+                        + "名称：雪碧，数量：1瓶，单价：4.00(元)，小计：4.00(元)\n"
                         + "----------------------\n"
-                        + "总计：6.84(元)\n"
-                        + "节省：2.15(元)\n"
+                        + "总计：14.40(元)\n"
+                        + "节省：5.60(元)\n"
                         + "**********************\n";
         assertThat(actualShoppingList, is(expectedShoppingList));
     }
 
     @Test
-    public void testVipImformationForVipDiscountAndPromotion() throws Exception {
-        String sampleIndex = new StringBuilder()  //标准输入 输入到index.json文件
-                .append("{\n")
-                .append("'ITEM000001':{\n")
-                .append("\"name\": '雪碧',\n")
-                .append("\"unit\": '瓶',\n")
-                .append("\"price\": 3.00,\n")
-                .append("\"promotion\": true,\n")
-                .append("\"vipDiscount\": 0.90\n")
-                .append("}\n")
-                .append("}\n")
-                .toString();
-        WriteToFile(indexFile, sampleIndex);
-        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);
-        ArrayList<Item> items = inputParser.parser().getItems();
-
+    public void testNotExistVIPUserBuyMixedItems() throws  Exception{
+        // given
         ShoppingChart shoppingChart = new ShoppingChart();
-        for (Item i : items) {
-            shoppingChart.add(i);
-        }
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000000", "雪碧", "瓶", 4.00, true));
+        shoppingChart.add(new Item("ITEM000001", "可乐", "罐", 2.00, 0.5));
+        shoppingChart.add(new Item(0.8, "ITEM000002", "雪碧", "听", 3.00, false));
+        shoppingChart.add(new Item(0.8, "ITEM000003", "牛奶", "盒", 3.00, 0.8));
 
+        shoppingChart.setUser(new User("USER0009","武文斌", true, 501));
+
+        // when
         Pos pos = new Pos();
-
         String actualShoppingList = pos.getShoppingList(shoppingChart);
-        String expectedShoppingList =    //标准输出打印
+
+        // then
+        String expectedShoppingList =
                 "***商店购物清单***\n"
-                        + "打印时间：!!!\n"
-                        + "雪碧不参加 “买二赠一” 优惠活动\n"
+                        + "会员编号：USER0009\t会员积分：511分\n"
                         + "----------------------\n"
-                        + "名称：雪碧，数量：3瓶，单价：3.00(元)，小计：8.10(元)\n"
+                        + "名称：雪碧，数量：3瓶，单价：4.00(元)，小计：8.00(元)\n"
+                        + "名称：可乐，数量：1罐，单价：2.00(元)，小计：1.00(元)\n"
+                        + "名称：雪碧，数量：1听，单价：3.00(元)，小计：2.40(元)\n"
+                        + "名称：牛奶，数量：1盒，单价：3.00(元)，小计：1.92(元)\n"
                         + "----------------------\n"
-                        + "总计：8.10(元)\n"
-                        + "节省：0.90(元)\n"
+                        + "挥泪赠送商品：\n"
+                        + "名称：雪碧，数量：1瓶，单价：4.00(元)，小计：4.00(元)\n"
+                        + "----------------------\n"
+                        + "总计：13.32(元)\n"
+                        + "节省：6.68(元)\n"
                         + "**********************\n";
         assertThat(actualShoppingList, is(expectedShoppingList));
     }

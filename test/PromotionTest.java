@@ -20,6 +20,7 @@ import static org.junit.Assert.assertThat;
 public class PromotionTest {
     private File indexFile;
     private File itemsFile;
+    private File usersFile;
 
     @Before
     public void setUp() throws Exception {
@@ -60,7 +61,7 @@ public class PromotionTest {
                 .toString();
         WriteToFile(itemsFile, sampleItems);
 
-        InputParser inputParser = new InputParser(indexFile, itemsFile);
+        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);
         ArrayList<Item> items = inputParser.parser().getItems();
 
         ShoppingChart shoppingChart = new ShoppingChart();
@@ -111,7 +112,7 @@ public class PromotionTest {
                 .toString();
         WriteToFile(itemsFile, sampleItems);
 
-        InputParser inputParser = new InputParser(indexFile, itemsFile);
+        InputParser inputParser = new InputParser(indexFile, itemsFile, usersFile);
         ArrayList<Item> items = inputParser.parser().getItems();
 
         ShoppingChart shoppingChart = new ShoppingChart();
